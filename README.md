@@ -1,4 +1,5 @@
 4clojure
 ========
+Solutions for 4clojure.com.
 
-4clojure solutions
+Each update will be min(10 problems, 40 lines).
