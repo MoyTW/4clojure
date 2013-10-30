@@ -14,7 +14,8 @@
 ; to be consumed, it continues on consuming without adding it to the output,
 ; thereby skipping duplicates.
 ;   As far as algorithms go, it's fine. Gets the job done, and all that. No
-; horrendous inefficiencies present themselves and it will do fine with a zero-length sequence, or a sequence with all one letter, so...
+; horrendous inefficiencies present themselves and it will do fine with a
+; zero-length sequence, or a sequence with all one letter, so...
   
 ; ...let's go to cleanup. Algorithm is unchanged, but now it's prettier.
 ; I was on quite the #() binge, wasn't I? To loop/recur:
