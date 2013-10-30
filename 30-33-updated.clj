@@ -45,7 +45,7 @@
       (reverse out)
       (if (= (first in) (first (first out)))
         (noconsec 
-		  (rest in)
+          (rest in)
           (conj (rest out) (conj (first out) (first in))))
         (noconsec (rest in) (conj out (list(first in)))))))
   (rest %) (list (list (first %))))
