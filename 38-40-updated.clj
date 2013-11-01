@@ -54,7 +54,8 @@
 ; myself. Fortunately, we actually can't just call reduce again (well, I
 ; mean, you can, and doubtless there's some way to make it work if you
 ; apply the thumbscrews enough, but you know what I mean, right?)
-;   You know what, today seems to be thumbscrew night, what with my previous wacky terrible new solution. Let's do it!
+;   You know what, today seems to be thumbscrew night, what with my
+; previous wacky terrible new solution. Let's do it!
 
 ;   Okay, here's what we're gonna do.
 ; We take the shorter one, right? We count that. That's how many things we
