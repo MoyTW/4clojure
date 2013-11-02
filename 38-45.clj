@@ -50,9 +50,5 @@
 	    (recur (dec r) (conj (subvec coll 1) (first coll)))
 		(recur (inc r) (conj (butlast coll) (last coll)))))))
         
-; -----=====***** 44 (1 line, 39 total) *****=====-----
+; -----=====***** 45 (1 line, 39 total) *****=====-----
 [1 4 7 10 13]
-
-; -----=====***** 45 (2 lines, 41 total) *****=====-----
-(fn flip [f]
-  (fn ([x y] (f y x))))
