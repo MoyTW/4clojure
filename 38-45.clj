@@ -52,3 +52,10 @@
         
 ; -----=====***** 45 (1 line, 39 total) *****=====-----
 [1 4 7 10 13]
+
+; Whoops. I lied. There's a 46 here!
+;    Well, since I've gone and done 41-45-updated already...we'll push this off
+; to the next set and pretend this never happened, m'kay?
+; -----=====***** 46 (2 lines, 41 total) *****=====-----
+(fn flip [f]
+  (fn ([x y] (f y x))))
