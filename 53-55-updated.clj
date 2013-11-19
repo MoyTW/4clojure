@@ -70,11 +70,11 @@
 ;;   Eeeeurgh. That's all kinds of ugly. The algorithm, well, okay, the
 ;; algorithm? Works fine, but it's not very clojure-like. It has a double-nested
 ;; loop/recur in it and, well, frankly there's probably a better way to do this.
-;; It's an iterative algorithm more or less crammed into a functional language,
+;; It's an imperative algorithm more or less crammed into a functional language,
 ;; and that's not cool.
 ;;   I just don't see what that better way is. Maybe I'm stuck thinking too
-;; iteratively? Off to the Google, to see what solutions the Clojure-Wizards of
-;; the Net have come up with!
+;; imperatively? Off to the Google, to see what solutions the Clojure-Wizards 
+;; of the Net have come up with!
 		
 ;; From https://gist.github.com/hyone/1032985 by hyone: Holy hell.
 (fn longest-inc-seq [coll]
