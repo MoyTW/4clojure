@@ -6,9 +6,9 @@
   ([f coll] (cust-reductions f (first coll) (next coll)))
   ([f init coll]
     (if (seq coll)
-      (cons init 
-	      (lazy-seq (cust-reductions f (f init (first coll)) (next coll))))
-	    (cons init (lazy-seq '())))))
+        (cons init 
+          (lazy-seq (cust-reductions f (f init (first coll)) (next coll))))
+        (cons init (lazy-seq '())))))
 ;;   Ah, lazy sequences. Lazy sequences are sometimes difficult for me to get my
 ;; head around, but I seem to have done all right here. We have one of my rare
 ;; usages of traditional recursion, utilizing cons, no less!
@@ -21,11 +21,11 @@
   ([f init coll]
     (if (seq coll)
         (lazy-seq 
-		  (cons init 
-		        (cust-reductions f 
-				                 (f init (first coll)) 
-								 (next coll))))
-	    (lazy-seq (cons init '())))))
+          (cons init 
+            (cust-reductions f 
+                             (f init (first coll)) 
+                             (next coll))))
+        (lazy-seq (cons init '())))))
 ;;   It doesn't *really* matter which of the two you ways you put it, it's still
 ;; going to be lazy, it just modifies how many times it's run at the start.
 ;; Nobody will really care either way.
@@ -62,24 +62,23 @@
 ;; as it goes. I don't think there's anoter way that's better so...as-is!
 
 ;;; 63 - Group a Sequence
-;; Original:		
+;; Original:    
 (fn cust-group [f s]
   (loop [f f s s m {}]
     (if (empty? s) m
-	    (let [f-s (first s)]
-	      (recur 
-	        f 
-		      (rest s)
-		      (assoc m (f f-s) (conj (get m (f f-s) []) f-s)))))))
+      (let [f-s (first s)]
+        (recur f 
+               (rest s)
+               (assoc m (f f-s) (conj (get m (f f-s) []) f-s)))))))
 ;;   Okay, well, first things first. The formatting got messed up real bad, so
 ;; let's fix that and do a little refactoring. Apparently, at this point I
 ;; hadn't yet fully comprehended how closures work:
 (fn cust-group [f s]
   (loop [s s mp {}]
     (if-let [[f-s & more] (seq s)]
-	  (recur (rest s) 
-	         (assoc mp (f f-s) (conj (get mp (f f-s) []) f-s)))
-	  mp)))
+      (recur (rest s) 
+             (assoc mp (f f-s) (conj (get mp (f f-s) []) f-s)))
+      mp)))
 ;;   So, that's kind of ugly, and it's not actually shorter in terms of lines,
 ;; but it's definitely much, much cleaner.
 ;;   The algorithm is actually very simple. Loop over the target sequence, and
