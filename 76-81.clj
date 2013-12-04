@@ -50,7 +50,7 @@
         (filter #(= 0 (mod n %)) 
                 (rest (take n (range)))))))
 
-;;;; -----=====***** 81 (4 lines, 38 total) *****=====-----										
+;;;; -----=====***** 81 (4 lines, 38 total) *****=====-----
 (fn cust-inter [lset rset]
   (reduce #(if (contains? rset %2) (conj %1 %2) %1) 
           #{}
