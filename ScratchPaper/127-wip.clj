@@ -182,3 +182,13 @@
   (= nil (jesus-wept [0 31 0 31 0])) ;ALSO NOPE
 )
 ;; Okay it's like, 9:40. So I'll come back to this later when I'm not tired and stuff.
+
+;; hahaha, that's not how you rotate matrices
+;; this is how you rotate matrices
+(defn gen-mine-permutations [mine]
+  [mine
+   (into [] (map (comp vec reverse) (apply map vector mine)))
+   (into [] (reverse (map (comp vec reverse) mine)))
+   (into [] (reverse (apply map vector mine)))])
+
+;; There we go.
