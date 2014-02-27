@@ -1,67 +1,53 @@
 ;;;; 150 - Palindromic Numbers (56 lines)
 ;; This one drove me a bit batty.
-;;   The deal is this: It times out on 4Clojure. However, if you run the tests
-;; locally, it'll finish in less than a second. Weird, huh?
-;;   Since it passes all the tests - and fairly quickly - I just threw my hands
-;; up and said "The solution is right and 4Clojure has some obscure sandbox
-;; issue or something" - so here's my solution.
-;;   You may also want to look here for my scratch paper:
-; https://github.com/MoyTW/4clojure/blob/master/ScratchPaper/150-wip.clj
-; https://github.com/MoyTW/4clojure/blob/master/ScratchPaper/150-synth.clj
-
+;;   4Clojure's sandbox apparently has Issues with interop, so I reimplemented
+;; some basic functions to get it to pass, but hey, worked out in the end.
 (fn __ [n]
-  (let [check-parity 
-          (fn [n] 
-            (if (zero? n) 
-                :o
-                (if (even? (int (Math/log10 n))) :o :e)))
-        take-half 
-          (fn take-half [n]
-            (let [f (if (even? (int (Math/log10 n))) 
-                        #(Math/floor %) 
-                        #(Math/ceil %))]
-              (bigint (/ n (Math/pow 10 (bigint (f (/ (Math/log10 n) 2))))))))
-        reverse-integer
-          (fn reverse-integer [n]
-            (loop [out 0 in n]
-              (if (zero? in)
-                  out
-                  (recur (+' (*' 10 out) (mod in 10)) (bigint (/ in 10))))))
-        palindromic?
-          (fn palindromic? [n]
+  (letfn [(palindromic? [n]
             (let [s (.toString n)
                   take-half (fn [coll] (take (int (/ (count coll) 2)) coll))]
               (= (take-half s) (take-half (reverse s)))))
-        mirror
-          (fn mirror [n parity]
-            (let [begin (if (= parity :o) (bigint (/ n 10)) (bigint n))]
-              (loop [out n in begin]
-                (if (zero? in)
-                    out
-                    (recur (+' (*' 10 out) (mod in 10)) (bigint (/ in 10)))))))
-        next-palindromic
-          (fn next-palindromic [n]
-            (if (zero? n)
-                1
-                (let [parity (check-parity n)
-                      all-nines? (not= (int (Math/log10 n)) (int (Math/log10 (inc n))))
-                      next-half (inc (take-half n))]                  
-                    (if all-nines?
-                        (if (= parity :e)
-                            (mirror next-half :o)
-                            (mirror (int (/ next-half 10)) :e))
-                        (mirror next-half parity)))))
-        closest-palindromic
-          (fn closest-palindromic [n]
-            (if (zero? n)
-                1
-                (let [parity (check-parity n)
-                      left-half (take-half n)
-                      right-half (take-half (reverse-integer n))]
-                  (if (> right-half left-half)
-                      (mirror (inc left-half) parity)
-                      (mirror left-half parity)))))]
+          (log-10 [n]
+            (loop [out -1 in n]
+              (if (zero? in)
+                  out
+                  (recur (inc out) (quot in 10)))))
+          (pow-10 [n]
+            (loop [out 1 e n]
+              (if (zero? e)
+                  out
+                  (recur (* 10 out) (dec e)))))
+          (take-half [n]
+            (let [l-10 (log-10 n)
+                  f (if (even? l-10) int #(inc (int %)))]
+              (bigint (/ n (pow-10 (f (/ l-10 2)))))))
+          (reverse-integer [n]
+            (loop [out 0 in n]
+              (if (zero? in)
+                  out
+                  (recur (+' (*' 10 out) (mod in 10)) (quot in 10)))))
+          (mirror [n parity]
+            (if (odd? parity)
+                (+ (* n (pow-10 (log-10 n))) (reverse-integer (quot n 10)))
+                (+ (* n (pow-10 (inc (log-10 n)))) (reverse-integer n))))
+          (next-palindromic [n]
+            (let [l-10 (log-10 n)
+                  parity (dec l-10)
+                  left-half (take-half n)]
+              (cond
+                (not (palindromic? n))
+                  (let [right-half (take-half (reverse-integer n))]
+                    (if (> right-half left-half)
+                        (mirror (inc left-half) parity)
+                        (mirror left-half parity)))
+                (not= l-10 (log-10 (inc n)))
+                  (if (even? parity)
+                      (mirror (inc left-half) 1)
+                      (mirror (quot (inc left-half) 10) 0))
+                :else
+                  (mirror (inc left-half) parity))))
+          (make-seq [n]
+            (lazy-seq (cons n (make-seq (next-palindromic n)))))]
     (if (palindromic? n)
-        (lazy-seq (cons n (__ (next-palindromic n))))
-        (let [p (closest-palindromic n)]
-          (lazy-seq (cons p (__ (next-palindromic p))))))))
+        (make-seq n)
+        (make-seq (next-palindromic n)))))
