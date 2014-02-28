@@ -129,4 +129,209 @@
    [7] "1110"})
 (__ p6-in) ; ((\- \1 \0 \-) (\0 \- \0 \-))
 (__ p1-fmap) ; ((\- \1 \1 \0) (\1 \- \- \0) (\1 \0 \- \-) (\1 \- \0 \-))
-;; Well, that's not right at all.
+
+;; Okay, now must filter:
+(defn step [state final]
+  (let [r (butlast (sort (keys state)))
+        next-state (group-by #(num-ones (second %)) 
+                             (mapcat #(merge-terms % state) r))
+        unmerged (find-unmerged state next-state)]
+    (if (seq next-state)
+        (recur next-state (concat final unmerged))
+        [state (concat final unmerged)])))
+
+(defn __ [func-map]
+  (step (group-by #(num-ones (second %)) func-map) #{}))
+(__ p1-fmap)
+; [{1 [[(1 2 3 4) (\1 \0 \- \-)]
+;      [(1 2 5 6) (\1 \- \0 \-)] 
+;      [(1 3 2 4) (\1 \0 \- \-)]
+;      [(1 3 5 7) (\1 \- \- \0)]
+;      [(1 5 2 6) (\1 \- \0 \-)]
+;      [(1 5 3 7) (\1 \- \- \0)]]}
+;  ((\- \1 \1 \0) (\1 \- \- \0) (\1 \0 \- \-) (\1 \- \0 \-))]
+;; No, actually, barking up the wrong tree there. We just want the unmerged set, but with the miniterms. So:
+(defn step [state final]
+  (let [r (butlast (sort (keys state)))
+        next-state (group-by #(num-ones (second %)) 
+                             (mapcat #(merge-terms % state) r))
+        unmerged (find-unmerged state next-state)]
+    (if (seq next-state)
+        (recur next-state (concat final unmerged))
+        (concat final unmerged))))
+(defn find-unmerged [old-state new-state]
+  (let [old-minis (map (comp set first) (mapcat second old-state))
+        new-minis (map (comp set first) (mapcat second new-state))
+        new-map (apply hash-map (apply concat (map #(vector (into #{} (first %)) (second %)) (mapcat second old-state)))) ; yeah this is pretttty dumb
+        unmerged (for [l-term old-minis
+                       :when (every? false? (map #(clojure.set/subset? l-term %) new-minis))]
+                    [l-term (new-map l-term)])]
+    (into #{} unmerged)))
+(__ p1-fmap)
+; ([#{0 7} (\- \1 \1 \0)]
+;  [#{1 2 5 6} (\1 \- \0 \-)]
+;  [#{1 3 5 7} (\1 \- \- \0)]
+;  [#{1 2 3 4} (\1 \0 \- \-)])
+;; Okay.
+
+(filter #(contains? (first %1) 0) (__ p1-fmap))
+
+(defn get-essential [mini unmerged]
+  (let [covers (filter #(contains? (first %1) mini) unmerged)]
+    (if (= 1 (count covers))
+        [(second (first covers))]
+        nil)))
+
+(defn find-essentials [miniterms unmerged]
+  (mapcat #(get-essential % unmerged) miniterms))
+(find-essentials (apply concat (keys p1-fmap)) (__ p1-fmap))
+
+;; aaand, okay, put it into __
+
+(defn __ [func-map]
+  (let [miniterms (apply concat (keys p1-fmap))
+        implicants (step (group-by #(num-ones (second %)) func-map) #{})]
+  (find-essentials miniterms implicants)))
+(__ p1-fmap)
+;; Hopefully all of the test cases are completely covered so we don't need to do the final trial pass.
+
+;; Okay how to get from the given format to a better one? Mine is the better one, of course. As if there was any question about it.
+(def conversion
+  {'A [0 \1]
+   'a [0 \0]
+   'B [1 \1]
+   'b [1 \0]
+   'C [2 \1]
+   'c [2 \0]
+   'D [3 \1]
+   'd [3 \0]})
+(map conversion #{'a 'B 'C 'd})
+(apply str (map second (sort-by first (map conversion #{'a 'B 'C 'd}))))
+
+(defn func-to-string [coll]
+  (apply str (map second (sort-by first (map conversion coll)))))
+
+(def p1-strs 
+  (map func-to-string
+       #{#{'a 'B 'C 'd}
+         #{'A 'b 'c 'd}
+         #{'A 'b 'c 'D}
+         #{'A 'b 'C 'd}
+         #{'A 'b 'C 'D}
+         #{'A 'B 'c 'd}
+         #{'A 'B 'c 'D}
+         #{'A 'B 'C 'd}}))
+(= (sort p1-strs) (sort (vals p1-fmap)))
+(apply merge (map-indexed #(hash-map [%1] %2) (sort p1-strs)))
+(defn to-funcmap [coll]
+  (apply merge (map-indexed #(hash-map [%1] %2) 
+               (sort (map func-to-string coll)))))
+(to-funcmap 
+  #{#{'a 'B 'C 'd}
+    #{'A 'b 'c 'd}
+    #{'A 'b 'c 'D}
+    #{'A 'b 'C 'd}
+    #{'A 'b 'C 'D}
+    #{'A 'B 'c 'd}
+    #{'A 'B 'c 'D}
+    #{'A 'B 'C 'd}})
+
+;; aaaand back
+(map-indexed vector "00-1")
+(filter #(not= (second %) \-) (map-indexed vector "00-1"))
+(map (clojure.set/map-invert conversion)
+     (filter #(not= (second %) \-) (map-indexed vector "00-1")))
+
+(defn to-set [coll]
+  (into #{} (map (clojure.set/map-invert conversion)
+                 (filter #(not= (second %) \-) (map-indexed vector coll)))))
+
+(defn to-sets [coll]
+  (into #{} (map to-set coll)))
+
+(defn __ [funcs]
+  (let [func-map (to-funcmap funcs)
+        miniterms (apply concat (keys func-map))
+        implicants (step (group-by #(num-ones (second %)) func-map) #{})]
+  (to-sets (find-essentials miniterms implicants))))
+(__  
+  #{#{'a 'B 'C 'd}
+    #{'A 'b 'c 'd}
+    #{'A 'b 'c 'D}
+    #{'A 'b 'C 'd}
+    #{'A 'b 'C 'D}
+    #{'A 'B 'c 'd}
+    #{'A 'B 'c 'D}
+    #{'A 'B 'C 'd}}) ; #{#{C B d} #{A c} #{A b}}
+    
+;; Test:
+(= (__ #{#{'a 'B 'C 'd}
+         #{'A 'b 'c 'd}
+         #{'A 'b 'c 'D}
+         #{'A 'b 'C 'd}
+         #{'A 'b 'C 'D}
+         #{'A 'B 'c 'd}
+         #{'A 'B 'c 'D}
+         #{'A 'B 'C 'd}})
+   #{#{'A 'c} 
+     #{'A 'b}
+     #{'B 'C 'd}}) ; true
+(= (__ #{#{'A 'B 'C 'D}
+         #{'A 'B 'C 'd}})
+   #{#{'A 'B 'C}}) ; true
+(= (__ #{#{'a 'b 'c 'd}
+         #{'a 'B 'c 'd}
+         #{'a 'b 'c 'D}
+         #{'a 'B 'c 'D}
+         #{'A 'B 'C 'd}
+         #{'A 'B 'C 'D}
+         #{'A 'b 'C 'd}
+         #{'A 'b 'C 'D}})
+   #{#{'a 'c}
+     #{'A 'C}}) ; true
+(= (__ #{#{'a 'b 'c} 
+         #{'a 'B 'c}
+         #{'a 'b 'C}
+         #{'a 'B 'C}})
+   #{#{'a}}) ; true
+(= (__ #{#{'a 'B 'c 'd}
+         #{'A 'B 'c 'D}
+         #{'A 'b 'C 'D}
+         #{'a 'b 'c 'D}
+         #{'a 'B 'C 'D}
+         #{'A 'B 'C 'd}})
+   #{#{'a 'B 'c 'd}
+     #{'A 'B 'c 'D}
+     #{'A 'b 'C 'D}
+     #{'a 'b 'c 'D}
+     #{'a 'B 'C 'D}
+     #{'A 'B 'C 'd}}) ; true
+(= (__ #{#{'a 'b 'c 'd}
+         #{'a 'B 'c 'd}
+         #{'A 'B 'c 'd}
+         #{'a 'b 'c 'D}
+         #{'a 'B 'c 'D}
+         #{'A 'B 'c 'D}})
+   #{#{'a 'c}
+     #{'B 'c}}) ; true
+(= (__ #{#{'a 'B 'c 'd}
+         #{'A 'B 'c 'd}
+         #{'a 'b 'c 'D}
+         #{'a 'b 'C 'D}
+         #{'A 'b 'c 'D}
+         #{'A 'b 'C 'D}
+         #{'a 'B 'C 'd}
+         #{'A 'B 'C 'd}})
+   #{#{'B 'd}
+     #{'b 'D}}) ; true
+(= (__ #{#{'a 'b 'c 'd}
+         #{'A 'b 'c 'd}
+         #{'a 'B 'c 'D}
+         #{'A 'B 'c 'D}
+         #{'a 'B 'C 'D}
+         #{'A 'B 'C 'D}
+         #{'a 'b 'C 'd}
+         #{'A 'b 'C 'd}})
+   #{#{'B 'D}
+     #{'b 'd}}) ; true
+;; Okay, looks good.
