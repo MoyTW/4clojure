@@ -190,14 +190,33 @@
 (first (sort > (map count sz))) ;4
 (reduce merge-rows [[]] (map #(gen-shifts 4 %) sz))
 
-([[nil nil nil 1] 
-  [1 2 1 2]
-  [2 1 2 1]
-  [1 2 1 2]
-  [nil nil nil nil]]
- [[nil nil 1 nil]
-  [1 2 1 2]
-  [2 1 2 1]
-  [1 2 1 2]
-  [nil nil nil nil]] [[nil 1 nil nil] [1 2 1 2] [2 1 2 1] [1 2 1 2] [nil nil nil nil]] [[1 nil nil nil] [1 2 1 2] [2 1 2 1] [1 2
- 1 2] [nil nil nil nil]])
+;([[nil nil nil 1] 
+;  [1 2 1 2]
+;  [2 1 2 1]
+;  [1 2 1 2]
+;  [nil nil nil nil]]
+; [[nil nil 1 nil]
+;  [1 2 1 2]
+;  [2 1 2 1]
+;  [1 2 1 2]
+;  [nil nil nil nil]] 
+; [[nil 1 nil nil]
+;  [1 2 1 2]
+;  [2 1 2 1]
+;  [1 2 1 2] 
+;  [nil nil nil nil]] 
+; [[1 nil nil nil]
+;  [1 2 1 2]
+;  [2 1 2 1]
+;  [1 2 1 2] 
+;  [nil nil nil nil]])
+;; Hmm.
+(range 2 (inc (min (count sz) (count (first sz))))) ; is ()
+;; I think I found the error.
+(defn get-latin [coll]
+  (let [m (first (sort > (map count coll)))
+        array (reduce merge-rows [[]] (map #(gen-shifts m %) coll))
+        sizes (range 2 (inc (min (count coll) m)))]
+    (mapcat #(square-latin % array) sizes)))
+(__ sz)
+;; Huzzah!
