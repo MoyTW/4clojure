@@ -1,7 +1,5 @@
-;;;; 150 - Palindromic Numbers (56 lines)
-;; This one drove me a bit batty.
-;;   4Clojure's sandbox apparently has Issues with interop, so I reimplemented
-;; some basic functions to get it to pass, but hey, worked out in the end.
+;; 4Clojure Problem 150. Palindromic Numbers
+;; url: http://www.4clojure.com/problem/150
 (fn __ [n]
   (letfn [(palindromic? [n]
             (let [s (.toString n)

@@ -1,4 +1,5 @@
-;;;; 147 - Pascal's Trapezoid (7 lines)
+;; 4Clojure Problem 147. Pascal's Trapezoid
+;; url: http://www.4clojure.com/problem/147
 (fn __ [coll]
   (cons coll 
         (lazy-seq 

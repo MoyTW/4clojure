@@ -1,4 +1,5 @@
-;;;; 164 - Language of a DRA (11 lines)
+;; 4Clojure Problem 164. Language of a DFA
+;; url: http://www.4clojure.com/problem/164
 (fn __ [{:keys [states alphabet start accepts transitions] :as dfa}]
   (letfn [(resolve-step [[string node] transitions]
             (if-let [outgoing (transitions node)]

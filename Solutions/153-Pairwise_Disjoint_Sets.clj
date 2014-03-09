@@ -1,4 +1,5 @@
-;;;; 153 - Pairwise Disjoint Sets (13 lines)
+;; 4Clojure Problem 153. Pairwise Disjoint Sets
+;; url: http://www.4clojure.com/problem/153
 (fn __ [sets]
   (letfn [(disjoint? [left right]
             (zero? (count (for [l left
